@@ -11,37 +11,58 @@ RDEPENDS_${PN} = "zlib"
 
 LIC_FILES_CHKSUM = "file://COPYING;md5=f1883baf3a14753e47d9152b3b994ada"
 
+inherit cmake
+
 SRC_URI = "https://www.hdfgroup.org/ftp/HDF5/releases/${PN}-${PV}/src/${PN}-${PV}.tar.bz2	\
-		file://fix-configure.patch;patch=1;pnum=0	\
-		file://fix-test-make.patch;patch=1;pnum=0	\
-		file://fix-src-make.patch;patch=1;pnum=0	\
-		file://H5lib_settings.c				\
-		file://H5Tinit.c				\
-		"
+    file://configuration.patch \
+    file://generation.patch \
+    file://copy_generated.patch \
+"
 
 SRC_URI[md5sum] = "79c1593573ebddf734eee8d43ecfe483"
 SRC_URI[sha256sum] = "13aaae5ba10b70749ee1718816a4b4bfead897c2fcb72c24176e759aec4598c6"
-
-S = "${WORKDIR}/${PN}-${PV}"
 
 PACKAGES += "${PN}-extra"
 FILES_${PN} += "/usr/lib/libhdf5.settings"
 FILES_${PN}-extra = "/usr/share/hdf5_examples/"
 
-do_configure_prepend () {
-	find ./ -type f -print0 | xargs -0 sed -i 's/TEST_SCRIPT =.*/TEST_SCRIPT =/g'
-}
-
-do_configure () {
-	./configure --host=${HOST_SYS} --build=${BUILD_SYS} --disable-sharedlib-rpath \
-				--enable-production --enable-cxx --prefix=${D}/usr	\
-				--with-zlib=${STAGING_INCDIR},${STAGING_LIBDIR}
-}
-
-do_qa_configure () {
-}
+# EXTRA_OECONF = "--enable-production --enable-cxx --with-zlib=${STAGING_INCDIR},${STAGING_LIBDIR}"
+EXTRA_OECMAKE = " \
+    -DHAVE_DEFAULT_SOURCE_RUN=0 \
+    -DHAVE_DEFAULT_SOURCE_RUN__TRYRUN_OUTPUT= \
+    -DTEST_LFS_WORKS_RUN=0 \
+    -DTEST_LFS_WORKS_RUN__TRYRUN_OUTPUT=0 \
+    -DH5_PRINTF_LL_TEST_RUN=1 \
+    -DH5_PRINTF_LL_TEST_RUN__TRYRUN_OUTPUT='8' \
+    -DTEST_DIRECT_VFD_WORKS_RUN=0 \
+    -DTEST_DIRECT_VFD_WORKS_RUN__TRYRUN_OUTPUT=0 \
+    -DH5_LDOUBLE_TO_LONG_SPECIAL_RUN=0 \
+    -DH5_LDOUBLE_TO_LONG_SPECIAL_RUN__TRYRUN_OUTPUT= \
+    -DH5_LONG_TO_LDOUBLE_SPECIAL_RUN=0 \
+    -DH5_LONG_TO_LDOUBLE_SPECIAL_RUN__TRYRUN_OUTPUT= \
+    -DH5_LDOUBLE_TO_LLONG_ACCURATE_RUN=0 \
+    -DH5_LDOUBLE_TO_LLONG_ACCURATE_RUN__TRYRUN_OUTPUT= \
+    -DH5_LLONG_TO_LDOUBLE_CORRECT_RUN=0 \
+    -DH5_LLONG_TO_LDOUBLE_CORRECT_RUN__TRYRUN_OUTPUT= \
+    -DH5_NO_ALIGNMENT_RESTRICTIONS_RUN=0 \
+    -DH5_NO_ALIGNMENT_RESTRICTIONS_RUN__TRYRUN_OUTPUT= \
+    -DCMAKE_INSTALL_PREFIX='${D}/usr' \
+"
 
 do_install() {
-	oe_runmake install
+    oe_runmake install
+    rm -f ${D}/usr/lib/*la
+    rm -f ${D}/usr/share/cmake/*
+    rm -f ${D}/usr/share/COPYING
+    rm -f ${D}/usr/share/RELEASE.txt
+    rm -f ${D}/usr/share/USING_HDF5_CMake.txt
+    rmdir ${D}/usr/share/cmake
+    rmdir ${D}/usr/share
+
+    ln -sr ${D}/usr/lib/libhdf5_cpp-shared.so ${D}/usr/lib/libhdf5_cpp.so
+    ln -sr ${D}/usr/lib/libhdf5_hl-shared.so ${D}/usr/lib/libhdf5_hl.so
+    ln -sr ${D}/usr/lib/libhdf5_hl_cpp-shared.so ${D}/usr/lib/libhdf5_hl_cpp.so
+    ln -sr ${D}/usr/lib/libhdf5-shared.so ${D}/usr/lib/libhdf5.so
+    ln -sr ${D}/usr/lib/libhdf5_tools-shared.so ${D}/usr/lib/libhdf5_tools.so
 }
 
