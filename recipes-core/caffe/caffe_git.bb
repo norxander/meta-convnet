@@ -11,56 +11,28 @@ DEPENDS = "make boost openblas protobuf glog gflags hdf5 opencv lmdb snappy leve
 
 LIC_FILES_CHKSUM = "file://LICENSE;md5=89a82623447e1b9b66e59b1e3c8a97fc"
 
-SRCREV = "ca4e3428bd40ba5b4ba941a7781d0d16d0726005"
+SRCREV = "4ba654f5c88c36ee8ba53964b7faf25c6d7010b4"
 SRC_URI = "git://github.com/BVLC/caffe.git;branch=master		\
-			file://mnist_convert_data.patch;patch=1;pnum=0		\
-			file://Makefile.patch;patch=1;pnum=0				\
-			file://db_lmdb.patch;patch=1;pnum=0					\
+           file://0001-Allow-setting-numpy-include-dir-from-outside.patch \
 			"
 S = "${WORKDIR}/git"
 
-FILES_${PN} += "${libdir}/*.so"
-FILES_${PN}-dev = "${includedir}"
+FILES_${PN} += " \
+    ${prefix}/python/* \
+"
+FILES_${PN}-dev = " \
+    ${includedir} \
+    ${datadir}/Caffe/*cmake \
+    ${libdir}/*.so \
+"
 
-do_configure (){
-}
+inherit cmake python-dir
 
-do_compile_prepend () {
-    if [ ! -e ${S}/Makefile.config ]; then
-        cat ${S}/Makefile.config.example > ${S}/Makefile.config
-    fi
-    
-    sed -i -e "s|# CPU_ONLY := 1|CPU_ONLY := 1|g;					\
-    		   s|Q ?= @|# Q ?= @|g;									\
-    		   s|BLAS := atlas|BLAS := open|g;						\
-    		   s|python2.7/dist-packages|python2.7/site-packages|g	\
-    		   " ${S}/Makefile.config
-    sed -i -e "s|/usr/lib|${STAGING_LIBDIR}|g" ${S}/Makefile.config
-    sed -i -e "s|/usr/local/lib|${STAGING_LIBDIR}|g" ${S}/Makefile.config
-    sed -i -e "s|/usr/include|${STAGING_INCDIR}|g" ${S}/Makefile.config
-    sed -i -e "s|/usr/local/include|${STAGING_INCDIR}|g" ${S}/Makefile.config
-}
+# allow cmake to find native Python interpreter
+OECMAKE_FIND_ROOT_PATH_MODE_PROGRAM = "BOTH"
 
-do_compile () {
-	oe_runmake distribute
-	oe_runmake test
-}
-
-do_install() {
-	install -m 0755 -d ${D}${libdir} 					\
-						${D}${bindir} 					\
-						${D}${includedir}/caffe/proto 	\
-						${D}${includedir}/caffe/test 	\
-						${D}${includedir}/caffe/util
-	install -m 0755 -D distribute/bin/*.bin ${D}${bindir}
-	install -m 0755 -D distribute/lib/* ${D}${libdir}
-	install -m 0755 -D distribute/include/caffe/*.hpp ${D}${includedir}/caffe
-	install -m 0755 -D distribute/include/caffe/proto/* ${D}${includedir}/caffe/proto
-	install -m 0755 -D distribute/include/caffe/test/* ${D}${includedir}/caffe/test
-	install -m 0755 -D distribute/include/caffe/util/* ${D}${includedir}/caffe/util
-}
-
-do_install_append () {
-	rm -rf ${D}${bindir}/*.txt
-}
+EXTRA_OECMAKE = " \
+    -DBLAS=open \
+    -DPYTHON_NUMPY_INCLUDE_DIR=${STAGING_DIR_TARGET}${PYTHON_SITEPACKAGES_DIR}/numpy/core/include \
+"
 
