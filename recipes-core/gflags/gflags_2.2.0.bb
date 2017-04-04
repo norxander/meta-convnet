@@ -4,7 +4,7 @@ AUTHOR = "Alexander Leiva <norxander@gmail.com>"
 HOMEPAGE = "https://gflags.github.io/gflags/"
 PRIORITY= "optional"
 SECTION = "libs"
-LICENSE = "BSD"
+LICENSE = "MIT"
 PR = "r0"
 
 RDEPENDS_${PN} = "bash"
