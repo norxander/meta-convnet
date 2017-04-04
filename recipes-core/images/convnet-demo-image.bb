@@ -1,7 +1,7 @@
 DESCRIPTION = "convnet-demo apps image"
 AUTHOR = "Alexander Leiva <norxander@gmail.com>"
 HOMEPAGE = "https://github.com/norxander"
-LICENSE = "BSD"
+LICENSE = "MIT"
 
 inherit core-image
 
