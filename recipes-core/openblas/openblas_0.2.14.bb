@@ -4,7 +4,7 @@ AUTHOR = "Alexander Leiva <norxander@gmail.com>"
 HOMEPAGE = "http://www.openblas.net/"
 PRIORITY= "optional"
 SECTION = "libs"
-LICENSE = "BSD"
+LICENSE = "MIT"
 PR = "r0"
 
 DEPENDS = "make"
