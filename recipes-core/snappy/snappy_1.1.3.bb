@@ -6,7 +6,7 @@ DESCRIPTION = "Snappy is a compression/decompression library. It does not aim fo
 HOMEPAGE="http://google.github.io/snappy/"
 SECTION = "console/utils"
 PRIORITY= "optional"
-LICENSE = "BSD"
+LICENSE = "MIT"
 PR = "r0"
 
 LIC_FILES_CHKSUM = "file://COPYING;md5=f62f3080324a97b3159a7a7e61812d0c"
