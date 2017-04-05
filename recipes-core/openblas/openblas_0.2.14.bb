@@ -16,22 +16,40 @@ SRC_URI = "git://github.com/xianyi/OpenBLAS.git;branch=develop"
 
 S = "${WORKDIR}/git"
 
+def map_arch(a, d):
+        import re
+        if re.match('i.86$', a): return 'ATOM'
+        elif re.match('x86_64$', a): return 'NEHALEM'
+        elif re.match('aarch32$', a): return 'CORTEXA9'
+        elif re.match('aarch64$', a): return 'ARMV8'
+        return a
+
+def map_bits(a, d):
+        import re
+        if re.match('i.86$', a): return 32
+        elif re.match('x86_64$', a): return 64
+        elif re.match('aarch32$', a): return 32
+        elif re.match('aarch64$', a): return 64
+        return 32
+
 do_compile () {
-	oe_runmake HOSTCC="${BUILD_CC}"						\
-  			   CC="${TARGET_PREFIX}gcc ${TOOLCHAIN_OPTIONS}" 	\
-			   ONLY_CBLAS=1 BINARY=32 TARGET=CORTEXA9
+        oe_runmake HOSTCC="${BUILD_CC}"                                         \
+                                CC="${TARGET_PREFIX}gcc ${TOOLCHAIN_OPTIONS}" \
+                                ONLY_CBLAS=1 BINARY='${@map_bits(d.getVar('TARGET_ARCH', True), d)}' \
+                                TARGET='${@map_arch(d.getVar('TARGET_ARCH', True), d)}'
 }
 
 do_install() {
-	oe_runmake HOSTCC="${BUILD_CC}" 					\
-  			   CC="${TARGET_PREFIX}gcc ${TOOLCHAIN_OPTIONS}" 	\
-			   ONLY_CBLAS=1 BINARY=32 TARGET=CORTEXA9		\
-			   PREFIX=${D}/usr install
+        oe_runmake HOSTCC="${BUILD_CC}"                                         \
+                                CC="${TARGET_PREFIX}gcc ${TOOLCHAIN_OPTIONS}" \
+                                ONLY_CBLAS=1 BINARY='${@map_bits(d.getVar('TARGET_ARCH', True), d)}' \
+                                TARGET='${@map_arch(d.getVar('TARGET_ARCH', True), d)}' \
+                                PREFIX=${D}/usr install
 }
 
 do_install_append() {
-	rm -rf ${D}/usr/bin
-	rm -rf ${D}/usr/lib/cmake
+        rm -rf ${D}/usr/bin
+        rm -rf ${D}/usr/lib/cmake
 }
 
 FILES_${PN}     = "${libdir}/*"
